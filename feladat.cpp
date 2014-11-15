@@ -45,67 +45,105 @@ Változások az eredeti feladatkiíráshoz képest
  *   - Comparator: típus, aminek példányai rendezést megvalósító 
  *                 függvényobjektumok
  */
-template<class T, class Comparator>
+
+template<class T>
+struct DefaultComparator {
+    int operator()(const T &a, const T &b) const { return (a < b) ? true : false; }
+};
+
+template<class T = int, class Comparator = DefaultComparator<T> >
 class my_priqueue {
 public:
     /** Belsõ osztály, amely az elõrehaladó iterátort valósítja meg. */
-    class iterator;
+    class iterator              //iterator inner class, a megfelelo metodusokat meg kell valositani
+    {
+        public:
+            iterator() : _p(0) {}                                                   //default konstruktor iterator objektum letrehozasara
+            iterator(const iterator &it) : _p(it._p) {}                             //copy konstruktor iterator objektum
+            T& operator*() { return *_p; }                                          //dereferencia
+            T* operator->() { return _p; }                                          
+            iterator& operator++() { ++_p; return *this; }                          //prefix iterator lepteto muvelet
+            iterator operator++(int) { iterator temp(*this); ++_p; return temp; }   //postfix iterator lepteto muvelet
+            iterator& operator--() { --_p; return *this; }                          //prefix iterator lepteto muvelet
+            iterator operator--(int) { iterator temp(*this); --_p; return temp; }   //postfix iterator lepteto muvelet
+            bool operator==(const iterator &it) { return _p == it._p; }             //logikai egyenlo muvelet
+            bool operator!=(const iterator &it) { return _p != it._p; }             //logikai nem egyenlo muvelet
+        private:
+            iterator(T* p) : _p(p) {}   //private konstruktor, ami megfelelo elemre allitja az iteratort
+            T* _p;                      //az iterator altal mutatott elem
+        friend class my_priqueue<T,Comparator>;   //Vector sablon friend definicioja, hogy hasznalhassuk a tipus parametereit iteratoron belul is
+    };
     /** Belsõ osztály, amely a hátrafeléhaladó iterátort valósítja meg. */
     class reverse_iterator;
-    /** A sablonpéldány rendelkezik default konstruktorral. */
-    my_priqueue();
-    /** Elem beszúrása a prioritási sorba a rendezésnek megfelelõ helyre. */
-    void push(const T &item);
-    /** A prioritási sor legelsõ elemének eltávolítása és visszaadása. */
-    T pop();
-    /** A prioritási sorban levõ elemek száma. */
-    int size();
 
+    /** A sablonpéldány rendelkezik default konstruktorral. */
+    my_priqueue() : _data(new T[0]), _size(0), _capacity(0) {};
+
+    ~my_priqueue() { delete[] _data; }
+
+    /** Elem beszúrása a prioritási sorba a rendezésnek megfelelõ helyre. */
+    void push(const T &item) {     
+        //ha nem tudunk több elemet belerakni akkor megduplázzuk a tömb méretét
+        //
+        if (_size == _capacity) {
+            int newcapacity = _capacity * 2 + 1;
+            T *newdata = new T[newcapacity]; //nagyobb méretû tömb létrehozása
+            for (int i = 0; i < _capacity; i++) //eddigi elemek átmásolása
+                newdata[i] = _data[i];
+            delete[] _data;
+            _data = newdata; //pointer beállítása
+            _capacity = newcapacity; //új _capacity érték beállítása
+        }
+        //elem hozzáadása és _size érték növelése
+        _data[_size++] = item;
+
+        sort();
+    }
+    /** A prioritási sor legelsõ elemének eltávolítása és visszaadása. */
+    T pop() {
+        T first = _data[0];
+        for (int i = 1; i<_size; i++){
+            _data[i-1] = _data[i];
+        }
+        _size--;
+        return first;
+    };
+    /** A prioritási sorban levõ elemek száma. */
+    int size() { return _size; };
+    /** A prioritási sor elemeinek indexelése (0-tól size()-1 -ig). */
+    const T& operator[](int index) const { return _data[index]; };
     /** Elõrehaladó kétirányú iterátor típus a prisor elemeinek bejárására. */
     class iterator;
     /** Hátrafelé haladó kétirányú iterátor típus a prisor elemeinek bejárására. */
     class reverse_iterator;
     /** Elõrehaladó iterátor a prisor legelsõ elemére. */
-    iterator begin();
+    iterator begin() { return iterator(_data); }
     /** Elõrehaladó iterátor a prisor utolsó utáni elemére. */
-    iterator end();
+    iterator end() { return iterator(_data + _size); }
     /** Hátrafelé haladó iterátor a prisor utolsó elemére. */
     reverse_iterator rbegin();
     /** Hátrafelé haladó iterátor a prisor elsõ elõtti elemére. */
     reverse_iterator rend();
+private: 
+    T *_data;
+    int _size;
+    int _capacity;
+
+    void sort(){
+        for (int i = 1; i<_size; i++)
+        {
+            for (int j = 0; j<_size - 1; j++)
+            {
+                if (_data[j] > _data[j+1])
+                {
+                    T temp;
+                    temp = _data[j];
+                    _data[j] = _data[j + 1];
+                    _data[j + 1] = temp;
+                }
+            }
+        }
+    }
 };
 
 // === MEGVALÓSÍTÁS VÉGE ===
-
-/**
- * Minta osztály, ami definiálja azt a publikus interfészt, amivel a
- * my_priqueue sablon második paraméterének rendelkeznie kell (feltéve, hogy az
- * elsõ sablonparaméter int volt). Ezt az osztályt a beadott feladatban nem 
- * kell megvalósítani!
- */
-struct comparator {
-    /** 
-     * Függvényhívás operátor felüldefiniálása, amely rendezést valósít meg. 
-     * Visszatérési értéke igaz, ha a < b valamilyen rendezési reláció szerint.
-     */
-    bool operator()(const int &a, const int &b);
-};
-
-/** 
- * Példa a prisor néhány felhasználására. A beadott feladatban nem szabad
- * szerepelnie.
- */
-int main() {
-    my_priqueue<int> q1;
-    q1.push(77);
-    q1.push(27);
-    q1.push(7);
-    
-    my_priqueue<int, comparator> q2;
-    q2.push(31);
-    q2.push(1977);
-
-    return 0;
-}
-
-
