@@ -15,7 +15,7 @@ struct comparator {
      * Visszatérési értéke igaz, ha a < b valamilyen rendezési reláció szerint.
      */
     bool operator()(const int &a, const int &b){
-        if (a<b){
+        if (a>b){
             return true;
         } else {
             return false;
@@ -34,6 +34,8 @@ int main() {
     q1.push(77);
     q1.push(27);
     q1.push(7);
+    q1.push(4);
+    q1.push(100);
 /*    
     my_priqueue<int, comparator> q2;
     q2.push(31);

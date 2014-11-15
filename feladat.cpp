@@ -128,13 +128,14 @@ private:
     T *_data;
     int _size;
     int _capacity;
+    Comparator _comparator;
 
     void sort(){
         for (int i = 1; i<_size; i++)
         {
             for (int j = 0; j<_size - 1; j++)
             {
-                if (_data[j] > _data[j+1])
+                if (_comparator(_data[j+1],_data[j]))
                 {
                     T temp;
                     temp = _data[j];
