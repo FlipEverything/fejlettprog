@@ -42,8 +42,8 @@ int main() {
     q2.push(1977);
 */
 
-    my_priqueue<int>::iterator it;
-    for (it = q1.begin(); it != q1.end(); ++it)
+    my_priqueue<int>::reverse_iterator it;
+    for (it = q1.rbegin(); it != q1.rend(); --it)
     cout << *it << " " << endl;
     
     return 0;

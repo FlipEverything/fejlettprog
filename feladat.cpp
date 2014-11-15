@@ -48,7 +48,7 @@ Változások az eredeti feladatkiíráshoz képest
 
 template<class T>
 struct DefaultComparator {
-    int operator()(const T &a, const T &b) const { return (a < b) ? true : false; }
+    bool operator()(const T &a, const T &b) const { return (a < b) ? true : false; }
 };
 
 template<class T = int, class Comparator = DefaultComparator<T> >
@@ -74,7 +74,24 @@ public:
         friend class my_priqueue<T,Comparator>;   //Vector sablon friend definicioja, hogy hasznalhassuk a tipus parametereit iteratoron belul is
     };
     /** Belsõ osztály, amely a hátrafeléhaladó iterátort valósítja meg. */
-    class reverse_iterator;
+    class reverse_iterator              //reverse_iterator inner class, a megfelelo metodusokat meg kell valositani
+    {
+        public:
+            reverse_iterator() : _p(0) {}                                                   //default konstruktor reverse_iterator objektum letrehozasara
+            reverse_iterator(const reverse_iterator &it) : _p(it._p) {}                             //copy konstruktor reverse_iterator objektum
+            T& operator*() { return *_p; }                                          //dereferencia
+            T* operator->() { return _p; }                                          
+            reverse_iterator& operator--() { ++_p; return *this; }                          //prefix reverse_iterator lepteto muvelet
+            reverse_iterator operator--(int) { reverse_iterator temp(*this); ++_p; return temp; }   //postfix reverse_iterator lepteto muvelet
+            reverse_iterator& operator++() { --_p; return *this; }                          //prefix reverse_iterator lepteto muvelet
+            reverse_iterator operator++(int) { reverse_iterator temp(*this); --_p; return temp; }   //postfix reverse_iterator lepteto muvelet
+            bool operator==(const reverse_iterator &it) { return _p == it._p; }             //logikai egyenlo muvelet
+            bool operator!=(const reverse_iterator &it) { return _p != it._p; }             //logikai nem egyenlo muvelet
+        private:
+            reverse_iterator(T* p) : _p(p) {}   //private konstruktor, ami megfelelo elemre allitja az reverse_iteratort
+            T* _p;                      //az reverse_iterator altal mutatott elem
+        friend class my_priqueue<T,Comparator>;   //Vector sablon friend definicioja, hogy hasznalhassuk a tipus parametereit reverse_iteratoron belul is
+    };
 
     /** A sablonpéldány rendelkezik default konstruktorral. */
     my_priqueue() : _data(new T[0]), _size(0), _capacity(0) {};
@@ -121,9 +138,9 @@ public:
     /** Elõrehaladó iterátor a prisor utolsó utáni elemére. */
     iterator end() { return iterator(_data + _size); }
     /** Hátrafelé haladó iterátor a prisor utolsó elemére. */
-    reverse_iterator rbegin();
+    reverse_iterator rbegin() { return reverse_iterator(_data + _size -1); }
     /** Hátrafelé haladó iterátor a prisor elsõ elõtti elemére. */
-    reverse_iterator rend();
+    reverse_iterator rend() { return reverse_iterator(_data - 1 ); }
 private: 
     T *_data;
     int _size;
