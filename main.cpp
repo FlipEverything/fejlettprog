@@ -35,15 +35,18 @@ int main() {
     q1.push(27);
     q1.push(7);
     q1.push(4);
+    q1.push(-4);
+    q1.push(-100);
     q1.push(100);
+    q1.push(0);
 /*    
     my_priqueue<int, comparator> q2;
     q2.push(31);
     q2.push(1977);
 */
 
-    my_priqueue<int>::reverse_iterator it;
-    for (it = q1.rbegin(); it != q1.rend(); --it)
+    my_priqueue<int>::iterator it;
+    for (it = q1.begin(); it != q1.end(); ++it)
     cout << *it << " " << endl;
     
     return 0;
